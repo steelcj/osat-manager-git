@@ -41,6 +41,9 @@ platforms:
       x86_64: "linux-64"
       aarch64: "linux-aarch64"
     executable: "bin/git"
+    # The package's own system configuration: the prefix's certificate
+    # bundle. Kept as delivered; the manager's file includes it.
+    package_config: "etc/gitconfig"
     resign: false
     status: "not yet verified"
   macos:
@@ -48,6 +51,7 @@ platforms:
       x86_64: "osx-64"
       arm64: "osx-arm64"
     executable: "bin/git"
+    package_config: "etc/gitconfig"
     # Patched Mach-O files on arm64 need an ad hoc signature (decision 0001).
     resign: true
     status: "not yet verified: no Apple hardware available"
@@ -57,6 +61,9 @@ platforms:
       x86_64: "win-64"
       ARM64: "win-arm64"
     executable: "Library/cmd/git.exe"
+    # Git for Windows' own system configuration: autocrlf, the LFS filter
+    # and helper-selector. Kept as delivered; the baseline overrides it.
+    package_config: "Library/etc/gitconfig"
     resign: false
     status: "not yet verified"
 

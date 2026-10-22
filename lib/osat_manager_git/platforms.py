@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Mapping, Optional
 
 from .errors import ManagerError
+from .gitconfig import ENV_VAR, Invocation
 
 SYSTEMS = {"Linux": "linux", "Darwin": "macos", "Windows": "windows"}
 HOME_VAR = "OSAT_GIT_HOME"            # overrides the install root
@@ -58,6 +59,7 @@ class Paths:
     bin_dir: Path
     executable: str
     windows: bool
+    package_config_file: Optional[str] = None
 
     @property
     def versions(self) -> Path:
@@ -86,8 +88,33 @@ class Paths:
     def git(self, version: str) -> Path:
         return self.prefix(version) / Path(*self.executable.split("/"))
 
+    @property
+    def config(self) -> Path:
+        return self.root / "config"
+
+    def package_config(self, version: str) -> Optional[Path]:
+        """The package's own system configuration file, left as the lock
+        delivered it, or None where the package ships none."""
+        if not self.package_config_file:
+            return None
+        return self.prefix(version) / Path(*self.package_config_file.split("/"))
+
+    def system_config(self, version: str) -> Path:
+        """The manager's system configuration file for one version. It sits
+        outside the prefix, so the prefix stays exactly as verified."""
+        return self.config / version / "gitconfig"
+
+    def invocation(self, version: str) -> Invocation:
+        """How to start one managed version: what launchers do, and what
+        --check --json reports for other managers."""
+        return Invocation(str(self.git(version)),
+                          {ENV_VAR: str(self.system_config(version))})
+
     def launcher(self, name: str) -> Path:
         return self.bin_dir / (f"{name}.cmd" if self.windows else name)
+
+    def render_launcher(self, invocation: Invocation) -> str:
+        return render_launcher(self.windows, invocation)
 
 
 def resolve_paths(manifest: dict, system: str,
@@ -98,9 +125,47 @@ def resolve_paths(manifest: dict, system: str,
                                                environ)
     bin_path = Path(bin_dir) if bin_dir else expand(manifest["bin_dir"][system],
                                                     environ)
-    return Paths(root_path, bin_path,
-                 manifest["platforms"][system]["executable"],
-                 system == "windows")
+    platform_entry = manifest["platforms"][system]
+    return Paths(root_path, bin_path, platform_entry["executable"],
+                 system == "windows", platform_entry.get("package_config"))
+
+
+# ── Launchers ───────────────────────────────────────────────────────────────
+
+def _sh_quote(text: str) -> str:
+    return "'" + text.replace("'", "'\\''") + "'"
+
+
+def _cmd_value(text: str) -> str:
+    """A value inside ``set "NAME=..."`` or a quoted command in a batch
+    file. ``%`` is the only character that still needs doubling there;
+    quotes and line breaks cannot be expressed safely, so they are
+    refused."""
+    if '"' in text or "\n" in text or "\r" in text:
+        raise ManagerError("launcher_path_invalid", path=text)
+    return text.replace("%", "%%")
+
+
+def render_launcher(windows: bool, invocation: Invocation) -> str:
+    """A launcher, for people and shells, that starts a managed git with
+    its environment. It does not change PATH: the package's Perl scripts
+    already name the prefix's own perl, and git finds its helpers through
+    its exec path. Other managers do not use launchers; they start
+    ``invocation.executable`` directly with ``invocation.env``, which on
+    Windows keeps their arguments away from cmd.exe's parsing."""
+    if windows:
+        lines = ["@echo off", "setlocal"]
+        for name, value in invocation.env.items():
+            lines.append(f'set "{name}={_cmd_value(value)}"')
+        lines.append(f'"{_cmd_value(invocation.executable)}" %*')
+        lines.append("exit /b %ERRORLEVEL%")
+        return "\r\n".join(lines) + "\r\n"
+    lines = ["#!/bin/sh", "# Written by manage-git."]
+    for name, value in invocation.env.items():
+        lines.append(f"{name}={_sh_quote(value)}")
+        lines.append(f"export {name}")
+    lines.append(f'exec {_sh_quote(invocation.executable)} "$@"')
+    return "\n".join(lines) + "\n"
 
 
 def baseline_config(manifest: dict, system: str) -> dict:

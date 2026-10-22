@@ -20,5 +20,9 @@
   "problem_version_too_old": "version {found} is older than the baseline minimum {minimum}",
   "problem_config_missing": "{key} is not set; the baseline needs {expected}",
   "problem_config_wrong": "{key} is {found}; the baseline needs {expected}",
-  "meets_baseline": "meets the baseline"
+  "meets_baseline": "meets the baseline",
+  "problem_system_config_missing": "its system configuration {path} is missing; reinstall this version",
+  "config_key_invalid": "{key} is not a configuration key the manager can write",
+  "config_value_invalid": "{value} cannot be written to a git configuration file",
+  "launcher_path_invalid": "{path} cannot be written into a launcher safely"
 }

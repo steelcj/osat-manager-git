@@ -10,7 +10,7 @@ Forward plan only; completed items move to [CHANGELOG.md](CHANGELOG.md).
 - Relocation through `info/paths.json`, text and binary, refusing a placeholder shorter than the install prefix; unit tests against small fake packages.
 - Ad hoc re-signing on macOS arm64 through the one named `codesign` exception.
 - The contract: install and activate, switch, aliases `git` and `git-{major}.{minor}`, protection, nothing left behind, the verified archive kept with its lock, self-install.
-- The manager-owned system `gitconfig` in each prefix, holding the baseline settings.
+- Write each version's system configuration and launchers on install and switch, and remove them with the version. Rendering both is in place.
 - Independent review of the unpacking and relocation code before the tag.
 - The end-to-end scenario on Linux amd64, cloning over HTTPS to prove the certificates in the prefix.
 

@@ -2,7 +2,10 @@
 
 ``check`` looks at the first git on ``PATH`` and every version the
 manager has installed, and reports each against the baseline in
-manager.yaml: a minimum version and required configuration values.
+manager.yaml: a minimum version and required configuration values. A
+managed version is checked as other managers will start it: its
+executable with ``GIT_CONFIG_SYSTEM`` naming the manager's own system
+configuration (decision 0001), which the report gives for each one.
 Checking runs only the git being checked, never a shell, and runs it from
 a fresh empty directory so no repository's own configuration is read.
 """
@@ -16,7 +19,9 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
+
+from .gitconfig import ENV_VAR, Invocation
 
 VERSION = re.compile(r"\bgit version (\d+)\.(\d+)\.(\d+)")
 TIMEOUT = 20
@@ -34,6 +39,7 @@ class Installation:
     origin: str                       # "path" or "managed"
     version: Optional[str] = None
     problems: List[Problem] = field(default_factory=list)
+    invocation: Optional[Invocation] = None
 
     @property
     def meets(self) -> bool:
@@ -65,6 +71,8 @@ class Report:
             "installations": [
                 {"path": i.path, "origin": i.origin, "version": i.version,
                  "meets": i.meets,
+                 "invocation": (i.invocation.as_dict()
+                                if i.invocation else None),
                  "problems": [problem(p) for p in i.problems]}
                 for i in self.installations],
         }
@@ -84,8 +92,14 @@ def version_tuple(text: str) -> Tuple[int, int, int]:
     return tuple(int(p) for p in parts)
 
 
-def _run(git: str, args: Sequence[str], cwd: str) -> subprocess.CompletedProcess:
+def _run(git: str, args: Sequence[str], cwd: str,
+         extra_env: Optional[Mapping[str, str]] = None
+         ) -> subprocess.CompletedProcess:
     env = dict(os.environ)
+    if extra_env:
+        # A managed git reads exactly the system file it is given.
+        env.pop("GIT_CONFIG_NOSYSTEM", None)
+        env.update(extra_env)
     env["GIT_CEILING_DIRECTORIES"] = cwd
     env.pop("GIT_DIR", None)
     env.pop("GIT_CONFIG", None)
@@ -96,12 +110,20 @@ def _run(git: str, args: Sequence[str], cwd: str) -> subprocess.CompletedProcess
 
 def inspect(git: str, origin: str, minimum: str,
             config: Dict[str, str],
-            unset_means: Optional[Dict[str, str]] = None) -> Installation:
+            unset_means: Optional[Dict[str, str]] = None,
+            invocation: Optional[Invocation] = None) -> Installation:
     unset_means = unset_means or {}
-    found = Installation(path=git, origin=origin)
+    found = Installation(path=git, origin=origin, invocation=invocation)
+    extra = invocation.env if invocation else None
+    if extra and ENV_VAR in extra and not Path(extra[ENV_VAR]).is_file():
+        # Without its system file, git would refuse to read configuration
+        # at all; say what is missing instead of reporting every key.
+        found.problems.append(Problem("problem_system_config_missing",
+                                      {"path": extra[ENV_VAR]}))
+        extra = {k: v for k, v in extra.items() if k != ENV_VAR}
     with tempfile.TemporaryDirectory(prefix="manage-git-check-") as cwd:
         try:
-            result = _run(git, ["--version"], cwd)
+            result = _run(git, ["--version"], cwd, extra)
         except (OSError, subprocess.SubprocessError) as exc:
             found.problems.append(Problem("problem_version_unreadable",
                                           {"detail": str(exc)}))
@@ -119,7 +141,7 @@ def inspect(git: str, origin: str, minimum: str,
                                           {"found": found.version,
                                            "minimum": minimum}))
         for key, expected in config.items():
-            value = _run(git, ["config", "--get", key], cwd)
+            value = _run(git, ["config", "--get", key], cwd, extra)
             current = value.stdout.strip() if value.returncode == 0 else None
             if current is None:
                 current = unset_means.get(key)
@@ -135,11 +157,12 @@ def inspect(git: str, origin: str, minimum: str,
 
 
 def check(manifest: dict, config: Dict[str, str],
-          managed: Sequence[Path] = (),
+          managed: Sequence[Union[Path, Invocation]] = (),
           path_git: Optional[str] = None,
           search_path: bool = True) -> Report:
     """Report the first git on PATH and each managed git against the
-    baseline. ``path_git`` overrides the PATH lookup, for tests."""
+    baseline. A managed git given as an Invocation is run with its
+    environment. ``path_git`` overrides the PATH lookup, for tests."""
     baseline = manifest["baseline"]
     minimum = baseline["minimum_version"]
     version_tuple(minimum)            # refuse a malformed baseline early
@@ -151,9 +174,11 @@ def check(manifest: dict, config: Dict[str, str],
     if first:
         installations.append(inspect(first, "path", minimum, config, unset))
         seen.add(os.path.realpath(first))
-    for git in managed:
+    for item in managed:
+        invocation = item if isinstance(item, Invocation) else None
+        git = invocation.executable if invocation else str(item)
         if os.path.realpath(git) in seen:
             continue
-        installations.append(inspect(str(git), "managed", minimum, config,
-                                     unset))
+        installations.append(inspect(git, "managed", minimum, config,
+                                     unset, invocation))
     return Report(int(baseline["version"]), minimum, installations)

@@ -76,7 +76,8 @@ def run_check(manifest: dict, system: str, say: Messages,
     paths = resolve_paths(manifest, system)
     managed = []
     if paths.versions.is_dir():
-        managed = [paths.git(v.name) for v in sorted(paths.versions.iterdir())
+        managed = [paths.invocation(v.name)
+                   for v in sorted(paths.versions.iterdir())
                    if paths.git(v.name).is_file()]
     report = check(manifest, baseline_config(manifest, system), managed)
     if as_json:

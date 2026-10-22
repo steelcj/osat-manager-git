@@ -73,6 +73,7 @@ Not ready: the first git on PATH does not meet the baseline
       "origin": "path",
       "version": "2.43.0",
       "meets": false,
+      "invocation": null,
       "problems": [
         {"code": "problem_version_too_old", "found": "2.43.0",
          "minimum": "2.49.0", "message": "version 2.43.0 is older than the baseline minimum 2.49.0"}
@@ -82,7 +83,20 @@ Not ready: the first git on PATH does not meet the baseline
 }
 ```
 
-`origin` is `path` for the first git on `PATH` and `managed` for a version manage-git installed. The problem codes are `problem_version_unreadable`, `problem_version_too_old`, `problem_config_missing` and `problem_config_wrong`.
+`origin` is `path` for the first git on `PATH` and `managed` for a version manage-git installed. The problem codes are `problem_version_unreadable`, `problem_version_too_old`, `problem_config_missing`, `problem_config_wrong` and `problem_system_config_missing`.
+
+## Starting a managed git from another manager
+
+Each managed installation carries an `invocation`: the executable, and the environment to add to the caller's own. It is `null` for the first git on `PATH`, which manage-git does not own.
+
+```json
+"invocation": {
+  "executable": "/home/a/.local/share/osat/git/versions/2.56.0/bin/git",
+  "env": {"GIT_CONFIG_SYSTEM": "/home/a/.local/share/osat/git/config/2.56.0/gitconfig"}
+}
+```
+
+Start the executable directly, with an argument list and that environment, never through a shell or a launcher. `GIT_CONFIG_SYSTEM` names the version's system configuration, which manage-git writes: it includes the package's own file, then sets the baseline. Without it, git reads only the package's file and the baseline does not apply. Launchers in the alias directory do the same for people and shells.
 
 ## The baseline
 
@@ -100,7 +114,7 @@ The baseline is the `baseline` section of `manager.yaml`: a version number for t
 
 | Version | Date | Status | Notes |
 | --- | --- | --- | --- |
-| 0.1.0 | 2026-10-21 | Accepted | Initial version, for the 0.1.0 skeleton |
+| 0.1.0 | 2026-10-21 | Accepted | Initial version, for the 0.1.0 skeleton; adds the `invocation` field and how other managers start a managed git |
 
 ## License
 

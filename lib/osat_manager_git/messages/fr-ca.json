@@ -20,5 +20,9 @@
   "problem_version_too_old": "la version {found} est plus ancienne que le minimum {minimum} de la base de référence",
   "problem_config_missing": "{key} n'est pas défini; la base de référence exige {expected}",
   "problem_config_wrong": "{key} vaut {found}; la base de référence exige {expected}",
-  "meets_baseline": "respecte la base de référence"
+  "meets_baseline": "respecte la base de référence",
+  "problem_system_config_missing": "sa configuration système {path} est absente; réinstallez cette version",
+  "config_key_invalid": "{key} n'est pas une clé de configuration que le gestionnaire peut écrire",
+  "config_value_invalid": "{value} ne peut pas être écrit dans un fichier de configuration git",
+  "launcher_path_invalid": "{path} ne peut pas être écrit sans risque dans un lanceur"
 }

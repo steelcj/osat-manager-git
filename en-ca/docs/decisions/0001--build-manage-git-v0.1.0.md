@@ -47,7 +47,8 @@ Build `manage-git`, meeting the OSAT manager contract, with these choices.
 - **Re-signing on macOS arm64 (D4):** one named exception to the no-shell-commands rule, `/usr/bin/codesign -s - -f` on files the manager has just patched. Revisited if a standard-library ad hoc signer proves small enough to review.
 - **Where the conda logic lives (D3):** it is written as a self-contained `conda` source kind, ready to move into the shared manager package (uc-automa 0024) when that package exists. Until then it lives here, listed as known debt, beside this manager's copies of the YAML subset reader and the data lookup.
 - **Windows specifics:** aliases target `Library\cmd\git.exe`, as Git for Windows does for `cmd`. The 9,612-file tree is unpacked below a short install root, because long paths are not assumed. Each version's archive costs about 121 MB.
-- **Configuration:** each installed prefix carries a system `gitconfig` that belongs to the manager and holds the baseline settings. The manager never reads configuration from another git installation and never writes to the user's `~/.gitconfig`.
+- **Configuration:** the package's own system configuration file stays exactly as the lock delivered it. On Linux and macOS, `etc/gitconfig` is written by the feedstock and points `http.sslCAInfo` and `http.sslCAPath` at the prefix's certificate bundle, so replacing it would break HTTPS; on Windows, `Library/etc/gitconfig` is Git for Windows' own. For each installed version the manager writes its own file, `config/<version>/gitconfig` under the install root and outside the prefix, which includes the package's file first and then sets the baseline, so the baseline wins wherever the two disagree. git reads the manager's file in place of the package's through `GIT_CONFIG_SYSTEM`, so the managed git never reads another installation's system configuration. A key git treats as a list, such as `credential.helper`, is written with an empty value first, which clears what the package's file set; on Windows that replaces `helper-selector`, which would otherwise ask through a dialog. The manager never writes to the user's `~/.gitconfig`.
+- **Starting a managed git:** launchers, for people and shells, set `GIT_CONFIG_SYSTEM` and start the executable, without changing `PATH`: the package's Perl scripts already name the prefix's own perl. Other managers do not use launchers. `manage-git --check --json` gives each managed installation's `invocation`, the executable and the environment to add, and they start that executable directly with an argument list, which on Windows keeps their arguments away from `cmd.exe`'s parsing of a `.cmd` launcher. The check itself runs each managed version that way.
 - **CA certificates:** `ca-certificates` is in every Linux and macOS lock, because conda's `openssl` and `libcurl` look for certificates in the prefix. Every end-to-end run clones over HTTPS to prove it.
 - **The baseline contract:** `manage-git --check` reports each git it can see, the managed ones and the first on `PATH`, against the baseline in `manager.yaml`: a minimum version and required configuration values. `--json` gives the form other managers read. Checking runs the git binary being checked; nothing else is run.
 - **Messages:** every message comes from a catalogue, complete in en-CA and fr-CA (requirement GIT-7).
@@ -62,6 +63,8 @@ The baseline contract, the five requirement areas (ID, ML, SEC, AL, GIT) and the
 
 - A new git version reaches users only after conda-forge rebuilds it and a reviewed lock is released.
 - Windows users get Git for Windows as repackaged by conda-forge, a link in the chain that MinGit would avoid, in exchange for one source kind and one verification path.
+- A managed git started without `GIT_CONFIG_SYSTEM`, by a program that finds the executable some other way, reads only the package's own configuration, without the baseline. Launchers and the reported invocation are the supported ways in.
+- Whether Git for Windows also reads machine-wide configuration from `%PROGRAMDATA%\Git\config` when `GIT_CONFIG_SYSTEM` is set is not known; the Windows end-to-end run settles it.
 - Perl comes with git on Linux and macOS; dropping it would break `git send-email`, `git svn` and other Perl commands.
 - The minimum git version in the baseline is open, proposed as 2.49.0, the oldest version conda-forge lists for every subdir in its current repodata.
 - Reaching 1.0.0 needs all three platforms verified (uc-automa 0011).
@@ -78,7 +81,7 @@ The baseline contract, the five requirement areas (ID, ML, SEC, AL, GIT) and the
 
 | Version | Date | Status | Notes |
 | --- | --- | --- | --- |
-| 0.1.0 | 2026-10-21 | Accepted | Initial version: conda-forge on all three platforms, D1 to D4 from the project plan |
+| 0.1.0 | 2026-10-21 | Accepted | Initial version: conda-forge on all three platforms, D1 to D4 from the project plan. Revised before acceptance: the package's system configuration is kept and included by a manager-owned file read through `GIT_CONFIG_SYSTEM`, after mise's conda backend showed the Linux package's file holds the certificate paths |
 
 ## License
 
