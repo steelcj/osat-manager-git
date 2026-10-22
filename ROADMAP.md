@@ -18,11 +18,11 @@ Forward plan only; completed items move to [CHANGELOG.md](CHANGELOG.md).
 
 - End-to-end runs on Linux arm64, Windows x64 and Windows ARM64.
 - macOS, on Apple hardware.
-- Settle where lock files live and the message catalogues' format (decision 0002, Open).
+- A real `git.exe` on Windows through the `current` junction (decision 0002).
 
 ## Later
 
-- Move the conda source kind, the YAML subset reader and the data lookup into the shared manager package (uc-automa 0024).
+- Move the conda source kind, the YAML subset reader and the data lookup into osat-manager-core, the shared manager package (uc-automa 0024 and 0035), and switch the message catalogues to its gettext machinery under `en-ca/messages/` and `fr-ca/messages/`.
 - Require Sigstore attestations under CEP 27 once conda-forge publishes them for every subdir.
 - A git-lfs companion manager from conda-forge.
 - Report the licence mislabel to the git-feedstock.

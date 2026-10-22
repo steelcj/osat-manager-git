@@ -4,7 +4,7 @@ dc:title: "Decision: Baseline 1 and Repository Conventions"
 dc:creator: "Christopher Steel"
 dc:contributor: "Claude Opus 5.5 (Anthropic), AI assistance"
 dc:subject: "OSAT manager, git, baseline, exit status, manager.yaml, launchers, uninstall, known debt"
-dc:description: "Settles baseline 1, what manage-git's exit status 2 means, the manager.yaml field names used until the shared schema exists, how Windows launchers and uninstall work, and the YAML reader as known debt; lock file location and the message catalogues' format stay open."
+dc:description: "Settles baseline 1, what manage-git's exit status 2 means, the manager.yaml field names used until the shared schema exists, how Windows launchers, a real git.exe and uninstall work, where lock files live, the message catalogues' format, and the YAML reader as known debt."
 dc:date: "2026-10-21"
 dc:type: "Text"
 dc:format: "text/markdown"
@@ -23,7 +23,7 @@ Status: Accepted, on merge of the pull request that introduces it
 
 ## Context
 
-Decision 0001 left the baseline's values as proposals, and the first pull request asked about conventions no uc-automa rule covers. Christopher Steel answered on 2026-10-21: the proposed values stand, `safe.directory` is left out, exit status 2 means "not ready", the copied YAML reader is acceptable debt, restic is not the model git has to follow, and nothing may be left behind on uninstall, with no registry writes. uc-automa 0033 and 0034 were accepted the same day.
+Decision 0001 left the baseline's values as proposals, and the first pull request asked about conventions no uc-automa rule covers. Christopher Steel answered on 2026-10-21: the proposed values stand, `safe.directory` is left out, exit status 2 means "not ready", the copied YAML reader is acceptable debt, restic is not the model git has to follow, and nothing may be left behind on uninstall, with no registry writes. uc-automa 0033 and 0034 were accepted the same day. On the remaining questions, where lock files live, how Windows programs find a real `git.exe`, and the catalogues' format, he asked for the recommended choices.
 
 ## Decision
 
@@ -58,29 +58,46 @@ These names are provisional; they move to the shared schema when it exists. Lock
 
 restic's launchers are not the model for git's. A git alias on Windows sets `GIT_CONFIG_SYSTEM` inside `setlocal` and runs `Library\cmd\git.exe`, then exits with its status. Deleting a git alias while git is running from it is not supported. The Windows end-to-end run confirms the form.
 
+### A real git.exe on Windows
+
+Many Windows programs, such as editors and git-cola, look for `git.exe` and cannot run a `.cmd` alias. mise answers this with a small native shim copied as each command's `.exe`; the standard library cannot build one. manage-git instead:
+
+- keeps a directory junction, `current`, under its install root, pointing at the active version's prefix. A junction needs no administrator rights;
+- appends one `[include]` of the manager's system configuration to the end of the Windows package's own `Library/etc/gitconfig`, so a `git.exe` started without `GIT_CONFIG_SYSTEM` still gets the baseline. This is the one change to a delivered file, on Windows only, and the manager records the file's new SHA-256 with the version's provenance. On Linux and macOS the package's file stays as delivered;
+- tells the person, once, to add `%LOCALAPPDATA%\osat\git\current\Library\cmd` to their `PATH`, as they already add the alias directory. The manager never changes `PATH` itself.
+
+Switching versions moves the junction. The Windows end-to-end run confirms that git, Git Credential Manager and an editor all work through it.
+
+### Lock files ship with the manager
+
+Locks live in the repository at `locks/<version>/<subdir>.json`, are signed with the release key, and are installed with the manager as package data (uc-automa 0019). A new git version reaches users in a new manage-git release, reviewed with the code. Installing a version needs nothing the manager does not already carry, which also keeps installs working on intermittent networks once the packages are archived.
+
 ### Nothing left behind, no registry writes
 
 `--uninstall` removes everything the manager owns and writes nothing to the registry. On Windows, where a running program cannot delete its own files, the last step is a batch file that deletes the remaining directory and then itself. The same applies to manage-python's manager runtime under uc-automa 0033.
 
 ### Known debt
 
-The YAML subset reader and the data lookup are copies of osat-manager-restic's, kept until the shared manager package exists, alongside the conda source kind (decision 0001).
+The YAML subset reader and the data lookup are copies of osat-manager-restic's, kept until the shared manager package exists, alongside the conda source kind (decision 0001) and the JSON message catalogues.
 
-## Open
+### Message catalogues follow SAT
 
-- **Where lock files live.** Decision 0001 proposed `locks/<version>/<subdir>.json` at the repository root, shipped with the manager as package data, so a new git version arrives with a new manager release.
-- **The message catalogues.** They move to the language roots, `en-ca/messages/` and `fr-ca/messages/`, the directory name SAT's sidecar specification uses for interface translations. Whether they stay JSON or become gettext catalogues, which the standard library reads only once compiled, is not settled, so they stay in `lib/osat_manager_git/messages/` until it is.
+Interface messages follow SAT's sidecar specification: gettext catalogues under each language root, `en-ca/messages/LC_MESSAGES/osat-manager-git.po` and `fr-ca/messages/LC_MESSAGES/osat-manager-git.po`, with the template at `lib/locale/osat-manager-git.pot`. Release tooling compiles them to `.mo` files, which the standard library's `gettext` reads, and the wheel carries them. msgmerge and fuzzy matching then handle translation drift, as SAT intends.
+
+The catalogue machinery is the same for every manager, so it is built once, in the shared manager package (uc-automa 0035). Until then the JSON catalogues stay in `lib/osat_manager_git/messages/` as known debt, so they move only once.
 
 ## Consequences
 
 - `--check` now requires `credential.helper = manager` on Windows.
 - Whoever builds the shared package renames these fields once, in every manager that uses them.
+- Releasing a new git version means a manage-git release.
+- On Windows, the package's `Library/etc/gitconfig` no longer matches the hash in its lock after install; the recorded provenance hash is what later checks compare against.
 
 ## Changelog
 
 | Version | Date | Status | Notes |
 | --- | --- | --- | --- |
-| 0.1.0 | 2026-10-21 | Accepted | Initial version, from Christopher Steel's answers of 2026-10-21 |
+| 0.1.0 | 2026-10-21 | Accepted | Initial version, from Christopher Steel's answers of 2026-10-21, including the recommended choices for lock files, a real `git.exe` on Windows and message catalogues |
 
 ## License
 
