@@ -30,14 +30,16 @@ sources:
 
 verification:
   checksum: "sha256"
-  # conda packages carry no signature; the lock file is the trust anchor.
-  package_signature: "unavailable"
-  lock_signature: "required"
+  # The signature on the trust anchor. conda packages carry none, so the
+  # anchor is the lock file, signed with the release key (decision 0001).
+  signature: "required"
+  signed: "lock"
   keep_verified_archive: true
 
 platforms:
   linux:
-    subdir:
+    # conda-forge subdir for each machine architecture.
+    arch:
       x86_64: "linux-64"
       aarch64: "linux-aarch64"
     executable: "bin/git"
@@ -47,7 +49,8 @@ platforms:
     resign: false
     status: "not yet verified"
   macos:
-    subdir:
+    # conda-forge subdir for each machine architecture.
+    arch:
       x86_64: "osx-64"
       arm64: "osx-arm64"
     executable: "bin/git"
@@ -56,7 +59,8 @@ platforms:
     resign: true
     status: "not yet verified: no Apple hardware available"
   windows:
-    subdir:
+    # conda-forge subdir for each machine architecture.
+    arch:
       AMD64: "win-64"
       x86_64: "win-64"
       ARM64: "win-arm64"
@@ -77,8 +81,8 @@ bin_dir:
   macos: "~/.local/bin"
   windows: "%LOCALAPPDATA%\\osat\\bin"
 
-# What "git is ready" means for other managers. Proposed values, open
-# until Christopher Steel confirms them.
+# What "git is ready" means for other managers: baseline 1, confirmed by
+# Christopher Steel on 2026-10-21 (decision 0002).
 baseline:
   version: 1
   minimum_version: "2.49.0"
@@ -87,6 +91,9 @@ baseline:
     core.autocrlf: "false"
   config_windows:
     core.longpaths: "true"
+    # Git Credential Manager, shipped in the Windows package; replaces the
+    # package's helper-selector, which asks through a dialog.
+    credential.helper: "manager"
   # git's own default for a key that is not set, so an unset key that
   # already behaves as required is not reported.
   unset_means:

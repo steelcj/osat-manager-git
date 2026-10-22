@@ -100,7 +100,7 @@ Start the executable directly, with an argument list and that environment, never
 
 ## The baseline
 
-The baseline is the `baseline` section of `manager.yaml`: a version number for the baseline itself, the minimum git version, the configuration required on every platform, the configuration added on one platform such as `config_windows`, and `unset_means`, git's own default for a key that is not set. A key that is not set but already behaves as required is not reported. Changing these values changes what the check reports, with no code change.
+The baseline is the `baseline` section of `manager.yaml`: a version number for the baseline itself, the minimum git version, the configuration required on every platform, the configuration added on one platform such as `config_windows`, and `unset_means`, git's own default for a key that is not set. A key that is not set but already behaves as required is not reported. Changing these values changes what the check reports, with no code change. Baseline 1 and the reasons for each value are in [decision 0002](../../decisions/0002--baseline-1-and-conventions-v0.1.0.md): git 2.49.0 or later, `core.autocrlf = false`, and on Windows `core.longpaths = true` and `credential.helper = manager`.
 
 ## Environment variables
 

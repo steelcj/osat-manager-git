@@ -30,7 +30,7 @@ class ManagerYamlTests(unittest.TestCase):
     def test_every_platform_complete(self):
         for system in ("linux", "macos", "windows"):
             platform = self.manifest["platforms"][system]
-            self.assertTrue(platform["subdir"], system)
+            self.assertTrue(platform["arch"], system)
             self.assertTrue(platform["executable"], system)
             self.assertIn(system, self.manifest["install_root"])
             self.assertIn(system, self.manifest["bin_dir"])

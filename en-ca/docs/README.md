@@ -15,6 +15,7 @@ Every document under `en-ca/docs/`, with its version and status, taken from its 
 | Document | Version | Status |
 | --- | --- | --- |
 | [Decision: Build manage-git](decisions/0001--build-manage-git-v0.1.0.md) | 0.1.0 | Accepted |
+| [Decision: Baseline 1 and Repository Conventions](decisions/0002--baseline-1-and-conventions-v0.1.0.md) | 0.1.0 | Accepted |
 
 ## References
 
