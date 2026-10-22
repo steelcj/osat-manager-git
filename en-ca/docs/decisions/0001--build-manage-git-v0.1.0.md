@@ -27,6 +27,8 @@ Every OSAT manager starts with a decision record naming the managed tool, its ra
 
 The project plan in uc-automa <a id="cite-steel-2026b"></a>[(Steel, 2026b)](#ref-steel-2026b) proposed conda-forge for Linux and macOS and MinGit for Windows. Christopher Steel chose on 2026-10-21 to use conda-forge's precompiled git on all three platforms, so the manager has one source kind.
 
+The radar entries are *Git on Windows, Options for osat-manager-git*, version 0.2.0, which puts conda-forge git in Trial as this manager's source on every platform, MinGit in Assess as the fallback and dugite-native in Hold <a id="cite-steel-2026c"></a>[(Steel, 2026c)](#ref-steel-2026c), and *Universal Cake Evaluation: mise-en-place*, whose conda backend is the reference design for installing conda-forge packages without conda <a id="cite-steel-2026d"></a>[(Steel, 2026d)](#ref-steel-2026d). On 2026-10-21 mise 2026.10.17 installed conda-forge git 2.56.0 on Linux from that backend: 26 packages, 55 MB downloaded and 255 MB installed, relocated and working. It locked `win-64` with the same SHA-256 checked by hand, and could not solve `win-arm64`, which its backend does not map, so `win-arm64` has no working reference.
+
 conda-forge publishes git, built from one feedstock <a id="cite-condaforge-nd"></a>[(conda-forge, n.d.)](#ref-condaforge-nd), for `linux-64`, `linux-aarch64`, `osx-64`, `osx-arm64`, `win-64` and `win-arm64`. Read from the channel's `current_repodata.json` and from the `win-64` package, downloaded on 2026-10-21:
 
 - Version 2.56.0, build 0, is current on every subdir.
@@ -77,11 +79,15 @@ The baseline contract, the five requirement areas (ID, ML, SEC, AL, GIT) and the
 
 <a id="ref-steel-2026b"></a>Steel, C. (2026b). *osat-manager-git* [Project plan, unpublished manuscript]. uc-automa. urn:uuid:73f941dd-4bde-457e-81b9-9d6447baae54 [↩](#cite-steel-2026b)
 
+<a id="ref-steel-2026c"></a>Steel, C. (2026c). *Git on Windows, options for osat-manager-git* (Version 0.2.0) [Radar entry, unpublished manuscript]. uc-radar. [↩](#cite-steel-2026c)
+
+<a id="ref-steel-2026d"></a>Steel, C. (2026d). *Universal Cake evaluation: mise-en-place, polyglot tool version manager* (Version 0.1.0) [Radar entry, unpublished manuscript]. uc-radar. [↩](#cite-steel-2026d)
+
 ## Changelog
 
 | Version | Date | Status | Notes |
 | --- | --- | --- | --- |
-| 0.1.0 | 2026-10-21 | Accepted | Initial version: conda-forge on all three platforms, D1 to D4 from the project plan. Revised before acceptance: the package's system configuration is kept and included by a manager-owned file read through `GIT_CONFIG_SYSTEM`, after mise's conda backend showed the Linux package's file holds the certificate paths |
+| 0.1.0 | 2026-10-21 | Accepted | Initial version: conda-forge on all three platforms, D1 to D4 from the project plan. Revised before acceptance: names its radar entries; the package's system configuration is kept and included by a manager-owned file read through `GIT_CONFIG_SYSTEM`, after mise's conda backend showed the Linux package's file holds the certificate paths |
 
 ## License
 
