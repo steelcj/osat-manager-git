@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "osat-manager-git"
+dynamic = ["version"]
+description = "manage-git: user-space installations of git from conda-forge, side by side, verified against reviewed lock files, and checked against the OSAT baseline."
+readme = "README.md"
+# compression.zstd, for reading .conda packages (decision 0001).
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [{ name = "Christopher Steel" }]
+dependencies = []
+
+[project.scripts]
+manage-git = "osat_manager_git.cli:main"
+
+[tool.setuptools]
+# manager.yaml lives once, at the repository root; this mapping carries it
+# in every install (uc-automa 0019).
+packages = ["osat_manager_git", "osat_manager_git.data"]
+
+[tool.setuptools.package-dir]
+"" = "lib"
+"osat_manager_git.data" = "."
+
+[tool.setuptools.package-data]
+"osat_manager_git" = ["messages/*.json"]
+"osat_manager_git.data" = ["manager.yaml"]
+
+[tool.setuptools.dynamic]
+# VERSION is the single source of the version.
+version = { file = "VERSION" }

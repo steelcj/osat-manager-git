@@ -1,0 +1,94 @@
+# What manage-git installs, where it comes from, how each download is
+# verified, and what each platform needs (decision 0001). Every value
+# comes from conda-forge's repodata and the win-64 package, read on
+# 2026-10-21.
+format: 1
+
+tool:
+  name: "git"
+  command: "manage-git"
+  upstream: "https://git-scm.com/"
+  feedstock: "https://github.com/conda-forge/git-feedstock"
+  # git is GPL-2.0-only; the feedstock labels it "GPL-2.0-or-later and
+  # LGPL-2.1-or-later", a mislabel worth reporting upstream.
+  license: "GPL-2.0-only"
+
+versions:
+  scheme: "semver"
+  default_alias: "git"
+  versioned_alias: "git-{major}.{minor}"
+
+sources:
+  kind: "conda"
+  channel: "https://conda.anaconda.org/conda-forge"
+  package: "git"
+  api: "https://api.anaconda.org/package/conda-forge/git"
+  # One lock per version and subdir, produced at release time, reviewed,
+  # and signed with the release key. The manager installs exactly the
+  # packages a lock names and never solves dependencies itself.
+  lock: "locks/{version}/{subdir}.json"
+
+verification:
+  checksum: "sha256"
+  # conda packages carry no signature; the lock file is the trust anchor.
+  package_signature: "unavailable"
+  lock_signature: "required"
+  keep_verified_archive: true
+
+platforms:
+  linux:
+    subdir:
+      x86_64: "linux-64"
+      aarch64: "linux-aarch64"
+    executable: "bin/git"
+    # The package's own system configuration: the prefix's certificate
+    # bundle. Kept as delivered; the manager's file includes it.
+    package_config: "etc/gitconfig"
+    resign: false
+    status: "not yet verified"
+  macos:
+    subdir:
+      x86_64: "osx-64"
+      arm64: "osx-arm64"
+    executable: "bin/git"
+    package_config: "etc/gitconfig"
+    # Patched Mach-O files on arm64 need an ad hoc signature (decision 0001).
+    resign: true
+    status: "not yet verified: no Apple hardware available"
+  windows:
+    subdir:
+      AMD64: "win-64"
+      x86_64: "win-64"
+      ARM64: "win-arm64"
+    executable: "Library/cmd/git.exe"
+    # Git for Windows' own system configuration: autocrlf, the LFS filter
+    # and helper-selector. Kept as delivered; the baseline overrides it.
+    package_config: "Library/etc/gitconfig"
+    resign: false
+    status: "not yet verified"
+
+install_root:
+  linux: "~/.local/share/osat/git"
+  macos: "~/Library/Application Support/osat/git"
+  windows: "%LOCALAPPDATA%\\osat\\git"
+
+bin_dir:
+  linux: "~/.local/bin"
+  macos: "~/.local/bin"
+  windows: "%LOCALAPPDATA%\\osat\\bin"
+
+# What "git is ready" means for other managers. Proposed values, open
+# until Christopher Steel confirms them.
+baseline:
+  version: 1
+  minimum_version: "2.49.0"
+  config:
+    # Line endings are governed by each repository's .gitattributes.
+    core.autocrlf: "false"
+  config_windows:
+    core.longpaths: "true"
+  # git's own default for a key that is not set, so an unset key that
+  # already behaves as required is not reported.
+  unset_means:
+    core.autocrlf: "false"
+    core.longpaths: "false"
