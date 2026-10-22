@@ -33,7 +33,7 @@ def conda_subdir(manifest: dict, system: str,
                  machine: Optional[str] = None) -> str:
     """The conda-forge subdir, such as ``linux-64``, for this machine."""
     machine = machine or platform.machine()
-    subdirs = manifest["platforms"][system]["subdir"]
+    subdirs = manifest["platforms"][system]["arch"]
     if machine not in subdirs:
         raise ManagerError("unsupported_arch", system=system, machine=machine,
                            known=", ".join(sorted(subdirs)))

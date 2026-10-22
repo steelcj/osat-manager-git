@@ -18,7 +18,7 @@ Forward plan only; completed items move to [CHANGELOG.md](CHANGELOG.md).
 
 - End-to-end runs on Linux arm64, Windows x64 and Windows ARM64.
 - macOS, on Apple hardware.
-- Settle the baseline: minimum version, `safe.directory`, credential helper.
+- Settle where lock files live and the message catalogues' format (decision 0002, Open).
 
 ## Later
 
