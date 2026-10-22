@@ -1,16 +1,25 @@
 ---
 title: "Universal Cake Requirements: Add Document Slice"
-description: "Testable Universal Cake requirements for osat-manager-git and a git-backed Add Document interface for SAT content."
-identifier: "urn:uuid:82642c55-a2c5-4800-9f24-600400f9e195"
-language: "en-ca"
-creator: "Christopher Steel"
-date: "2026-09-30"
-version: "0.1.0"
-status: "provisional"
-relation: "https://github.com/steelcj/uc-radar"
+dc:title: "Universal Cake Requirements: Add Document Slice"
+dc:creator: "Christopher Steel"
+dc:contributor: "Claude (Anthropic), AI assistance"
+dc:subject: "Universal Cake, requirements, osat-manager-git, Add Document, SAT content"
+dc:description: "Testable Universal Cake requirements for osat-manager-git and a git-backed Add Document interface for SAT content."
+dc:date: "2026-09-30"
+dc:type: "Text"
+dc:format: "text/markdown"
+dc:identifier: "urn:uuid:82642c55-a2c5-4800-9f24-600400f9e195"
+dc:source: "en/docs/uc-requirements-add-document-slice.md, commit a02fc95"
+dc:relation: "https://github.com/steelcj/uc-radar"
+dc:language: "en-CA"
+dc:rights: "CC-BY-4.0"
+sat:version: "0.1.0"
+sat:status: "Superseded"
 ---
 
 # Universal Cake Requirements: Add Document Slice
+
+> Superseded by [Decision: Build manage-git](../decisions/0001--build-manage-git-v0.1.0.md). Kept as the record of the 2026-09-30 scoping. Its baseline contract and requirement areas carry forward; its install routes through system package managers do not, because the OSAT manager contract allows no system package manager and no elevated privilege.
 
 This is a provisional draft. The version stays provisional until Christopher Steel confirms it. It was drafted with AI assistance (Claude, Anthropic).
 

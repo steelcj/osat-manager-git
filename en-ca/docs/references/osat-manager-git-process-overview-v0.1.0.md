@@ -1,16 +1,25 @@
 ---
 title: "Creating the Initial osat-manager-git: Process Overview"
-description: "How the initial osat-manager-git was scoped and planned: from feasibility to a unified git base, Universal Cake requirements, and a proposed build sequence."
-identifier: "urn:uuid:90391798-a7d9-4f30-b7c1-bd9e40bba160"
-language: "en-ca"
-creator: "Christopher Steel"
-date: "2026-09-30"
-version: "0.1.0"
-status: "provisional"
-relation: "https://github.com/steelcj/uc-radar"
+dc:title: "Creating the Initial osat-manager-git: Process Overview"
+dc:creator: "Christopher Steel"
+dc:contributor: "Claude (Anthropic), AI assistance"
+dc:subject: "osat-manager-git, scoping, baseline contract, Universal Cake, build sequence"
+dc:description: "How the initial osat-manager-git was scoped and planned: from feasibility to a unified git base, Universal Cake requirements, and a proposed build sequence."
+dc:date: "2026-09-30"
+dc:type: "Text"
+dc:format: "text/markdown"
+dc:identifier: "urn:uuid:90391798-a7d9-4f30-b7c1-bd9e40bba160"
+dc:source: "en/docs/osat-manager-git-process-overview.md, commit a02fc95"
+dc:relation: "https://github.com/steelcj/uc-radar"
+dc:language: "en-CA"
+dc:rights: "CC-BY-4.0"
+sat:version: "0.1.0"
+sat:status: "Superseded"
 ---
 
 # Creating the Initial osat-manager-git: Process Overview
+
+> Superseded by [Decision: Build manage-git](../decisions/0001--build-manage-git-v0.1.0.md). Kept as the record of the 2026-09-30 scoping. Its baseline contract and requirement areas carry forward; its install routes through system package managers do not, because the OSAT manager contract allows no system package manager and no elevated privilege.
 
 osat-manager-git is being built first as a unified git base: it manages multiple git installations on Linux, macOS and Windows through the standard osat CLI, with translated messages, so that every other osat manager can rely on git being present and correct. This overview records how that decision was reached and how the work proceeds. It is a provisional draft, drafted with AI assistance (Claude, Anthropic), and stays provisional until Christopher Steel confirms it.
 
